@@ -1,0 +1,69 @@
+<Solution>
+  <Folder Name="/docs/">
+    <File Path="docs/GUARDRAILS.md" />
+    <File Path="docs/PLAN.md" />
+  </Folder>
+  <Folder Name="/docs/context/">
+    <File Path="docs/context/ARCHITECTURE.md" />
+    <File Path="docs/context/CONVENTIONS.md" />
+    <File Path="docs/context/DOMAIN-GLOSSARY.md" />
+    <File Path="docs/context/EVENT-PATTERNS.md" />
+    <File Path="docs/context/TECH-STACK.md" />
+  </Folder>
+  <Folder Name="/docs/specs/" />
+  <Folder Name="/docs/specs/admin/">
+    <File Path="docs/specs/admin/CONTEXT-admin.md" />
+    <File Path="docs/specs/admin/SPEC-admin.md" />
+  </Folder>
+  <Folder Name="/docs/specs/auth/">
+    <File Path="docs/specs/auth/CONTEXT-auth.md" />
+    <File Path="docs/specs/auth/SPEC-auth.md" />
+  </Folder>
+  <Folder Name="/docs/specs/cart/">
+    <File Path="docs/specs/cart/CONTEXT-cart.md" />
+    <File Path="docs/specs/cart/SPEC-cart.md" />
+  </Folder>
+  <Folder Name="/docs/specs/catalog/">
+    <File Path="docs/specs/catalog/CONTEXT-catalog.md" />
+    <File Path="docs/specs/catalog/SPEC-catalog.md" />
+  </Folder>
+  <Folder Name="/docs/specs/orders/">
+    <File Path="docs/specs/orders/CONTEXT-orders.md" />
+    <File Path="docs/specs/orders/SPEC-orders.md" />
+  </Folder>
+  <Folder Name="/docs/specs/payments/">
+    <File Path="docs/specs/payments/CONTEXT-payments.md" />
+    <File Path="docs/specs/payments/SPEC-payments.md" />
+  </Folder>
+  <Folder Name="/Itens de Solução/">
+    <File Path=".editorconfig" />
+    <File Path=".env" />
+    <File Path=".env.example" />
+    <File Path=".gitignore" />
+    <File Path="CLAUDE.md" />
+    <File Path="docker-compose.override.yml" />
+    <File Path="docker-compose.prod.yml" />
+    <File Path="docker-compose.yml" />
+    <File Path="Dockerfile" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/skills/" />
+  <Folder Name="/skills/event-handler/">
+    <File Path="skills/event-handler/SKILL.md" />
+  </Folder>
+  <Folder Name="/skills/scaffold-feature/">
+    <File Path="skills/scaffold-feature/SKILL.md" />
+  </Folder>
+  <Folder Name="/skills/spec-to-tests/">
+    <File Path="skills/spec-to-tests/SKILL.md" />
+  </Folder>
+  <Folder Name="/skills/validate-spec/">
+    <File Path="skills/validate-spec/SKILL.md" />
+  </Folder>
+  <Project Path="Ecommerce.API/Ecommerce.API.csproj" Id="994f7f55-25a3-4137-8bee-677ff1352942" />
+  <Project Path="Ecommerce.Application/Ecommerce.Application.csproj" Id="149fe618-cd30-42dc-8c31-c42293f5aa91" />
+  <Project Path="Ecommerce.Domain/Ecommerce.Domain.csproj" Id="273126ba-dffa-4832-8924-2c4b425927ae" />
+  <Project Path="Ecommerce.Infrastructure/Ecommerce.Infrastructure.csproj" Id="e7188d9a-9286-4f39-855c-59d2b0ba1201" />
+  <Project Path="Ecommerce.IntegrationTests/Ecommerce.IntegrationTests.csproj" Id="d3248238-e4bd-445c-9af6-41c2467d3d67" />
+  <Project Path="Ecommerce.UnitTests/Ecommerce.UnitTests.csproj" Id="f98b0858-e2ca-4e77-a2fd-05c76e18f4a6" />
+</Solution>

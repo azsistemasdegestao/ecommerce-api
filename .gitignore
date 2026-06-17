@@ -1,0 +1,79 @@
+## .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+*.userprefs
+.idea/
+
+## Build outputs
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+## NuGet
+*.nupkg
+*.snupkg
+.nuget/
+packages/
+!**/packages/repositories.config
+*.nuspec
+
+## Test results
+TestResults/
+[Tt]est[Rr]esult*/
+*.trx
+*.coverage
+*.coveragexml
+
+## Publish
+[Pp]ublish/
+PublishScripts/
+
+## ASP.NET Core
+wwwroot/dist/
+
+## Secrets and environment
+.env
+*.env.local
+*.env.*.local
+!.env.example
+secrets.json
+appsettings.*.json
+!appsettings.json
+
+## Docker
+.dockerignore
+
+## OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+## Rider / JetBrains
+.idea/
+*.sln.iml
+
+## VS Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+## EF Core migrations backup
+*.mig
+
+## Misc
+*.bak
+*.tmp
+*.swp

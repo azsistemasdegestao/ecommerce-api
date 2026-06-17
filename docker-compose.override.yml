@@ -1,0 +1,4 @@
+services:
+  ecommerce-api:
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
