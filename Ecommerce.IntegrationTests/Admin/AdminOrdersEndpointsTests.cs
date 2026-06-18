@@ -30,7 +30,10 @@ public class AdminOrdersEndpointsTests : IClassFixture<TestContainersFixture>
         var factory = new CustomWebApplicationFactory
         {
             PostgresConnectionString = _containers.Postgres.GetConnectionString(),
-            RedisConnectionString = _containers.Redis.GetConnectionString()
+            RedisConnectionString = _containers.Redis.GetConnectionString(),
+            MinioEndpoint = _containers.Minio.GetConnectionString(),
+            MinioAccessKey = _containers.Minio.GetAccessKey(),
+            MinioSecretKey = _containers.Minio.GetSecretKey()
         };
 
         return Task.FromResult((factory, factory.CreateClient()));

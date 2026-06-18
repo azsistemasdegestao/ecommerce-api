@@ -13,6 +13,9 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
 {
     public required string PostgresConnectionString { get; init; }
     public required string RedisConnectionString { get; init; }
+    public required string MinioEndpoint { get; init; }
+    public required string MinioAccessKey { get; init; }
+    public required string MinioSecretKey { get; init; }
     public Action<IServiceCollection>? ConfigureTestServices { get; init; }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -28,6 +31,11 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
         Environment.SetEnvironmentVariable("JWT_AUDIENCE", "ecommerce-client");
         Environment.SetEnvironmentVariable("SEQ_URL", "http://localhost:5341");
         Environment.SetEnvironmentVariable("JAEGER_ENDPOINT", "http://localhost:4317");
+        Environment.SetEnvironmentVariable("MINIO_ENDPOINT", MinioEndpoint);
+        Environment.SetEnvironmentVariable("MINIO_ROOT_USER", MinioAccessKey);
+        Environment.SetEnvironmentVariable("MINIO_ROOT_PASSWORD", MinioSecretKey);
+        Environment.SetEnvironmentVariable("MINIO_PUBLIC_URL", MinioEndpoint);
+        Environment.SetEnvironmentVariable("MINIO_BUCKET_NAME", "product-images-test");
 
         if (ConfigureTestServices is not null)
             builder.ConfigureServices(ConfigureTestServices);

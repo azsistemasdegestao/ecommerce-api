@@ -40,5 +40,11 @@ public sealed class Product : BaseEntity, ISoftDelete
         UpdateTimestamp();
     }
 
+    public void UpdateImage(string imageUrl)
+    {
+        ImageUrl = imageUrl;
+        UpdateTimestamp();
+    }
+
     public void SoftDelete() => DeletedAt = DateTime.UtcNow;
 }
