@@ -19,7 +19,8 @@ public static class HealthCheckExtensions
         services.AddHealthChecks()
             .AddNpgSql(dbConnection, name: "postgres", tags: ["db", "postgres"])
             .AddRedis(redisConnection, name: "redis", tags: ["cache", "redis"])
-            .AddCheck<EventBusHealthCheck>("event_bus", tags: ["eventbus"]);
+            .AddCheck<EventBusHealthCheck>("event_bus", tags: ["eventbus"])
+            .AddCheck<StorageHealthCheck>("storage", tags: ["storage", "minio"]);
 
         return services;
     }

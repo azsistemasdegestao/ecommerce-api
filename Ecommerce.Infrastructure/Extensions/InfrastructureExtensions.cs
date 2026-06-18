@@ -1,4 +1,5 @@
 using System.Data;
+using Amazon.S3;
 using Ecommerce.Application.Admin;
 using Ecommerce.Application.Cart;
 using Ecommerce.Application.Catalog;
@@ -16,6 +17,7 @@ using Ecommerce.Infrastructure.EventBus;
 using Ecommerce.Infrastructure.Persistence;
 using Ecommerce.Infrastructure.Persistence.Repositories;
 using Ecommerce.Infrastructure.Queries;
+using Ecommerce.Infrastructure.Storage;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -36,6 +38,13 @@ public static class InfrastructureExtensions
         var redisConnectionString = configuration["REDIS_CONNECTION_STRING"]
             ?? throw new InvalidOperationException("REDIS_CONNECTION_STRING is not configured.");
 
+        var minioEndpoint = configuration["MINIO_ENDPOINT"]
+            ?? throw new InvalidOperationException("MINIO_ENDPOINT is not configured.");
+        var minioAccessKey = configuration["MINIO_ROOT_USER"]
+            ?? throw new InvalidOperationException("MINIO_ROOT_USER is not configured.");
+        var minioSecretKey = configuration["MINIO_ROOT_PASSWORD"]
+            ?? throw new InvalidOperationException("MINIO_ROOT_PASSWORD is not configured.");
+
         services.AddDbContext<AppDbContext>(options =>
             options.UseNpgsql(connectionString)
                    .UseSnakeCaseNamingConvention());
@@ -45,6 +54,12 @@ public static class InfrastructureExtensions
 
         services.AddSingleton<ICacheService, RedisCacheService>();
         services.AddSingleton<IEventBus, InMemoryEventBus>();
+
+        services.AddSingleton<IAmazonS3>(_ => new AmazonS3Client(
+            minioAccessKey,
+            minioSecretKey,
+            new AmazonS3Config { ServiceURL = minioEndpoint, ForcePathStyle = true }));
+        services.AddSingleton<IImageStorageService, S3ImageStorageService>();
 
         services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
         {

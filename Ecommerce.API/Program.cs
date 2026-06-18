@@ -63,6 +63,7 @@ app.MapPaymentsEndpoints();
 
 using (var scope = app.Services.CreateScope())
 {
+    await BucketInitializer.EnsureBucketExistsAsync(scope.ServiceProvider);
     await RoleSeeder.SeedRolesAsync(scope.ServiceProvider);
     await AdminSeeder.SeedAsync(scope.ServiceProvider);
 }

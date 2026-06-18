@@ -128,6 +128,31 @@ Creates a new product.
 
 ---
 
+### POST /api/v1/catalog/products/{id}/image
+Uploads an image for an existing product.
+
+- **Auth:** JWT + Role `Admin`
+- **Rate Limit:** `upload` — 5 req/min
+
+**Request:** `multipart/form-data`, field `file` (`image/jpeg`, `image/png` or `image/webp`, max 5MB)
+
+**Response 200 OK:**
+```json
+{
+  "id": "uuid",
+  "image_url": "https://...",
+  "updated_at": "2024-01-01T00:00:00Z"
+}
+```
+
+**Errors:**
+| Status | Reason |
+|--------|--------|
+| 400 | Invalid content type or file size exceeded |
+| 404 | Product not found |
+
+---
+
 ### PUT /api/v1/catalog/products/{id}
 Updates an existing product.
 
@@ -153,6 +178,8 @@ Removes a product (soft delete).
 - `BR-CAT-009` Event `ProductDeleted` published after deletion — invalidates Redis cache.
 - `BR-CAT-010` Listings always paginated (maximum 100 items per page).
 - `BR-CAT-011` Cache applied on public queries (Cache-Aside Pattern).
+- `BR-CAT-012` Image upload accepts only `image/jpeg`, `image/png`, `image/webp`, max 5MB.
+- `BR-CAT-013` `ProductUpdated` event reused after image upload, invalidates cache.
 
 ---
 
@@ -181,6 +208,8 @@ Removes a product (soft delete).
 | AC-CAT-U07 | Delete existing product | Valid ProductId | Soft delete, `ProductDeleted` published |
 | AC-CAT-U08 | Cache invalidated after update | ProductUpdated handler | Redis keys removed |
 | AC-CAT-U09 | Auto-generated slug when absent | Name without slug | Slug correctly generated |
+| AC-CAT-U10 | Upload image for existing product | Valid file + ProductId | Image uploaded, product updated, `ProductUpdated` published |
+| AC-CAT-U11 | Upload image for non-existing product | Invalid ProductId | `NotFoundException`, upload never attempted |
 
 ### Integration Tests
 
@@ -204,6 +233,12 @@ Removes a product (soft delete).
 | AC-CAT-I16 | PUT /catalog/products/{id} non-existing | Invalid ProductId | `404 Not Found` |
 | AC-CAT-I17 | DELETE /catalog/products/{id} as Admin | JWT Admin | `204 No Content` |
 | AC-CAT-I18 | Rate limit public catalog | 201 req/min | `429 Too Many Requests` |
+| AC-CAT-I19 | POST /catalog/products/{id}/image as Admin | Valid jpeg file | `200 OK` + `image_url` |
+| AC-CAT-I20 | POST /catalog/products/{id}/image non-existing product | Invalid ProductId | `404 Not Found` |
+| AC-CAT-I21 | POST /catalog/products/{id}/image invalid content type | `.txt` file | `400 Bad Request` |
+| AC-CAT-I22 | POST /catalog/products/{id}/image oversized file | File > 5MB | `400 Bad Request` |
+| AC-CAT-I23 | POST /catalog/products/{id}/image as Customer | JWT Customer | `403 Forbidden` |
+| AC-CAT-I24 | POST /catalog/products/{id}/image without JWT | No token | `401 Unauthorized` |
 
 ---
 

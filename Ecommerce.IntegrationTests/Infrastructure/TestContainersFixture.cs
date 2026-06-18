@@ -1,5 +1,6 @@
 using Ecommerce.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Testcontainers.Minio;
 using Testcontainers.PostgreSql;
 using Testcontainers.Redis;
 using Xunit;
@@ -16,9 +17,14 @@ public sealed class TestContainersFixture : IAsyncLifetime
 
     public RedisContainer Redis { get; } = new RedisBuilder("redis:7-alpine").Build();
 
+    public MinioContainer Minio { get; } = new MinioBuilder("minio/minio:latest")
+        .WithUsername("minioadmin")
+        .WithPassword("minioadmin123")
+        .Build();
+
     public async Task InitializeAsync()
     {
-        await Task.WhenAll(Postgres.StartAsync(), Redis.StartAsync());
+        await Task.WhenAll(Postgres.StartAsync(), Redis.StartAsync(), Minio.StartAsync());
 
         // Migrate directly, before any WebApplicationFactory/Program.cs host starts —
         // Program.cs seeds roles on startup and would fail against an un-migrated schema.
@@ -33,6 +39,6 @@ public sealed class TestContainersFixture : IAsyncLifetime
 
     public async Task DisposeAsync()
     {
-        await Task.WhenAll(Postgres.DisposeAsync().AsTask(), Redis.DisposeAsync().AsTask());
+        await Task.WhenAll(Postgres.DisposeAsync().AsTask(), Redis.DisposeAsync().AsTask(), Minio.DisposeAsync().AsTask());
     }
 }

@@ -74,6 +74,15 @@ public static class RateLimitingExtensions
                 o.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
                 o.QueueLimit = 0;
             });
+
+            options.AddSlidingWindowLimiter("upload", o =>
+            {
+                o.Window = TimeSpan.FromMinutes(1);
+                o.PermitLimit = 5;
+                o.SegmentsPerWindow = 6;
+                o.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+                o.QueueLimit = 0;
+            });
         });
 
         return services;

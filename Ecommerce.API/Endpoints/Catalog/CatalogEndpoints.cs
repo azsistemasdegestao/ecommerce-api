@@ -2,6 +2,7 @@ using Ecommerce.Application.Catalog;
 using Ecommerce.Application.Catalog.Commands.CreateProduct;
 using Ecommerce.Application.Catalog.Commands.DeleteProduct;
 using Ecommerce.Application.Catalog.Commands.UpdateProduct;
+using Ecommerce.Application.Catalog.Commands.UploadProductImage;
 using Ecommerce.Application.Catalog.Queries.GetCategories;
 using Ecommerce.Application.Catalog.Queries.GetProductBySlug;
 using Ecommerce.Application.Catalog.Queries.GetProducts;
@@ -76,6 +77,19 @@ public static class CatalogEndpoints
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .RequireAuthorization(policy => policy.RequireRole("Admin"))
             .RequireRateLimiting("user");
+
+        group.MapPost("/products/{id:guid}/image", UploadProductImage)
+            .WithName("UploadProductImage")
+            .WithSummary("Upload a product image")
+            .WithDescription("Uploads an image (jpeg/png/webp, max 5MB) for an existing product, restricted to Admins.")
+            .DisableAntiforgery()
+            .Produces<UploadProductImageResponse>(StatusCodes.Status200OK)
+            .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
+            .Produces<ProblemDetails>(StatusCodes.Status401Unauthorized)
+            .Produces<ProblemDetails>(StatusCodes.Status403Forbidden)
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
+            .RequireAuthorization(policy => policy.RequireRole("Admin"))
+            .RequireRateLimiting("upload");
     }
 
     private static async Task<IResult> GetProducts(
@@ -123,6 +137,14 @@ public static class CatalogEndpoints
     {
         await sender.Send(new DeleteProductCommand(id), ct);
         return Results.NoContent();
+    }
+
+    private static async Task<IResult> UploadProductImage(Guid id, IFormFile file, ISender sender, CancellationToken ct)
+    {
+        await using var stream = file.OpenReadStream();
+        var command = new UploadProductImageCommand(id, stream, file.FileName, file.ContentType, file.Length);
+        var result = await sender.Send(command, ct);
+        return Results.Ok(result);
     }
 }
 

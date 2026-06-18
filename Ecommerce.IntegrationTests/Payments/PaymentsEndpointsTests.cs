@@ -41,6 +41,9 @@ public class PaymentsEndpointsTests : IClassFixture<TestContainersFixture>
         {
             PostgresConnectionString = _containers.Postgres.GetConnectionString(),
             RedisConnectionString = _containers.Redis.GetConnectionString(),
+            MinioEndpoint = _containers.Minio.GetConnectionString(),
+            MinioAccessKey = _containers.Minio.GetAccessKey(),
+            MinioSecretKey = _containers.Minio.GetSecretKey(),
             ConfigureTestServices = gatewaySuccess is null
                 ? null
                 : services =>
