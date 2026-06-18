@@ -2,6 +2,7 @@
   <Folder Name="/docs/">
     <File Path="docs/GUARDRAILS.md" />
     <File Path="docs/PLAN.md" />
+    <File Path="docs/Tutorial.md" />
   </Folder>
   <Folder Name="/docs/context/">
     <File Path="docs/context/ARCHITECTURE.md" />
