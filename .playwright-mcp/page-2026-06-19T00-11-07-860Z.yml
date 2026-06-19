@@ -1,0 +1,93 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - navigation "Sidebar for Document 'v1' could not be loaded" [ref=e5]:
+      - generic [ref=e6]:
+        - search [ref=e7]:
+          - img [ref=e8]
+          - generic [ref=e11]: Open Search Search
+          - generic [ref=e12]:
+            - text: "Keyboard Shortcut:"
+            - generic [ref=e13]: CTRL⌃ k
+        - button "Ask AI" [ref=e14]:
+          - img [ref=e15]
+          - text: Ask AI
+      - list
+      - generic [ref=e18]:
+        - generic [ref=e19]:
+          - generic [ref=e20]:
+            - img [ref=e21]
+            - text: VS Code
+            - img [ref=e23]
+          - generic [ref=e26]:
+            - img [ref=e27]
+            - text: Cursor
+            - img [ref=e29]
+          - generic [ref=e32]:
+            - img [ref=e33]
+            - text: Generate MCP
+            - img [ref=e37]
+        - generic [ref=e40]:
+          - link "Powered by Scalar" [ref=e42] [cursor=pointer]:
+            - /url: https://www.scalar.com
+          - button "Set dark mode" [ref=e43]:
+            - generic:
+              - generic "Set dark mode"
+    - banner [ref=e45]:
+      - button "Open Menu" [ref=e46]:
+        - img [ref=e47]
+        - text: Open Menu
+    - main "Open API Documentation for Document 'v1' could not be loaded" [ref=e50]:
+      - generic [ref=e51]:
+        - generic "Developer Tools" [ref=e52]:
+          - generic [ref=e53]:
+            - button "Developer Tools" [ref=e56]:
+              - img [ref=e57]
+              - text: Developer Tools
+            - button "Configure" [ref=e61]:
+              - text: Configure
+              - img [ref=e62]
+            - button "Share" [ref=e66]:
+              - text: Share
+              - img [ref=e67]
+            - button "Deploy" [ref=e71]:
+              - text: Deploy
+              - img [ref=e72]
+        - region "Introduction" [ref=e76]:
+          - generic [ref=e77]:
+            - generic [ref=e79]: unknown
+            - heading "Document 'v1' could not be loaded" [level=1] [ref=e82]
+            - generic [ref=e83]:
+              - generic [ref=e85]:
+                - button "Download OpenAPI Document json" [ref=e86]:
+                  - text: Download OpenAPI Document
+                  - generic [ref=e87]: json
+                - button "Download OpenAPI Document yaml" [ref=e88]:
+                  - text: Download OpenAPI Document
+                  - generic [ref=e89]: yaml
+              - generic [ref=e94]:
+                - generic [ref=e95]: Client Libraries
+                - tablist "Client Libraries" [ref=e96]:
+                  - generic [ref=e97]:
+                    - tab "Shell" [selected] [ref=e98]:
+                      - img [ref=e100]
+                      - text: Shell
+                    - tab "Ruby" [ref=e102]:
+                      - img [ref=e104]
+                      - text: Ruby
+                    - tab "Node.js" [ref=e106]:
+                      - img [ref=e108]
+                      - text: Node.js
+                    - tab "PHP" [ref=e111]:
+                      - img [ref=e113]
+                      - text: PHP
+                    - tab "Python" [ref=e115]:
+                      - img [ref=e117]
+                      - text: Python
+                    - button "More Select from all clients" [ref=e120]: More Select from all clients
+                - tabpanel "Shell" [ref=e125]: Shell Curl
+    - dialog "API Client" [ref=e129]:
+      - region "Notifications alt+T":
+        - list
+      - generic [ref=e130]: No document selected
+  - region "Notifications alt+T":
+    - list

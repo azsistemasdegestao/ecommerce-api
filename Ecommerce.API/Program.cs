@@ -39,7 +39,7 @@ app.UseSecurityHeaders();
 
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi("/openapi/v1");
+    app.MapOpenApi();
     app.MapScalarApiReference(options => options.WithTitle("Ecommerce API"));
 }
 

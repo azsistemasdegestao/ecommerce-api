@@ -1,0 +1,10 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - banner [ref=e6]:
+      - button "Open Menu" [ref=e7] [cursor=pointer]:
+        - img [ref=e8]
+        - generic [ref=e11]: Open Menu
+    - main "Open API Documentation for undefined" [ref=e13]:
+      - region "Introduction" [ref=e16]
+  - region "Notifications alt+T":
+    - list

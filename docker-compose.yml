@@ -9,6 +9,7 @@ services:
       - .env
     environment:
       ASPNETCORE_URLS: http://+:8080
+      ASPNETCORE_ENVIRONMENT: Development
     depends_on:
       postgres:
         condition: service_healthy
