@@ -21,6 +21,7 @@
     <PackageReference Include="Scalar.AspNetCore" Version="2.16.3" />
     <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
     <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
+    <PackageReference Include="Serilog.Sinks.Grafana.Loki" Version="8.3.0" />
   </ItemGroup>
 
   <PropertyGroup>

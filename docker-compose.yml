@@ -82,6 +82,15 @@ services:
     networks:
       - ecommerce-network
 
+  loki:
+    image: grafana/loki:latest
+    ports:
+      - "3100:3100"
+    volumes:
+      - loki-data:/loki
+    networks:
+      - ecommerce-network
+
   prometheus:
     image: prom/prometheus:latest
     ports:
@@ -120,6 +129,7 @@ services:
 volumes:
   postgres-data:
   seq-data:
+  loki-data:
   grafana-data:
   minio-data:
 
