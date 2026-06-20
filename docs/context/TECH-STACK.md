@@ -137,6 +137,7 @@ GET /scalar      → Interactive UI (dev only)
 |------------|---------|-------|
 | Serilog | 4.x | Structured logging |
 | Serilog.Sinks.Seq | 8.x | Log shipping to Seq |
+| Serilog.Sinks.Grafana.Loki | 8.x | Log shipping to Loki (Grafana datasource) |
 | Serilog.Sinks.Console | 5.x | Console logs (dev) |
 | OpenTelemetry | 1.x | Standard for metrics and traces |
 | OpenTelemetry.Extensions.Hosting | 1.x | .NET host integration |
