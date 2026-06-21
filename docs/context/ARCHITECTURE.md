@@ -45,17 +45,21 @@ Ecommerce.Domain/
   Events/
     IDomainEvent.cs
     UserRegistered.cs
+    ProductCreated.cs
     ProductUpdated.cs
+    ProductDeleted.cs
     OrderCreated.cs
     PaymentRequested.cs
     PaymentProcessed.cs
     PaymentFailed.cs
+    PaymentRefunded.cs
   Interfaces/
     IRepository.cs
     IEventBus.cs
     ICacheService.cs
     ITokenService.cs
     IEmailService.cs
+    IImageStorageService.cs
   Enums/
     OrderStatus.cs
     PaymentStatus.cs
@@ -106,6 +110,9 @@ Ecommerce.Application/
     Behaviors/
       ValidationBehavior.cs
       LoggingBehavior.cs
+      TracingBehavior.cs
+    Observability/
+      ApplicationActivitySource.cs
 ```
 
 ### Infrastructure
@@ -129,20 +136,28 @@ Ecommerce.Infrastructure/
   Cache/
     RedisCacheService.cs
     CacheKeys.cs
+    CacheMetrics.cs
     Handlers/
       ProductUpdatedCacheHandler.cs
+      ProductDeletedCacheHandler.cs
   EventBus/
     InMemoryEventBus.cs
   Auth/
     TokenService.cs
+    RefreshTokenStore.cs
   Email/
     MockEmailService.cs
   Payments/
     MockGatewayService.cs
+  Storage/
+    S3ImageStorageService.cs
   Seeding/
     AdminSeeder.cs
-  Observability/
-    MetricsService.cs
+    RoleSeeder.cs
+    BucketInitializer.cs
+  HealthChecks/
+    EventBusHealthCheck.cs
+    StorageHealthCheck.cs
 ```
 
 ### API
@@ -171,12 +186,12 @@ Ecommerce.API/
       PaymentsEndpoints.cs
   Middleware/
     ErrorHandlingMiddleware.cs
-    RateLimitResponseMiddleware.cs
   Extensions/
     AuthExtensions.cs
     RateLimitingExtensions.cs
     ObservabilityExtensions.cs
     HealthCheckExtensions.cs
+    SecurityExtensions.cs
   Program.cs
 ```
 
@@ -242,6 +257,8 @@ public interface IEventBus
 Current implementation: `InMemoryEventBus` (development).
 Replaceable by RabbitMQ or Azure Service Bus without changing Domain/Application.
 
+`InMemoryEventBus.PublishAsync` opens a span per publish via the shared `ApplicationActivitySource` (`"Publish {EventType}"`), visible in Jaeger alongside the `TracingBehavior` span emitted for every MediatR command/query.
+
 ---
 
 ## Test Projects
@@ -265,6 +282,21 @@ Ecommerce.IntegrationTests/
   Infrastructure/
     CustomWebApplicationFactory.cs
     TestContainersFixture.cs
+
+Ecommerce.SmokeTests/          # no TestContainers — runs against the live Docker stack
+  Auth/
+    AuthFlowTests.cs
+  Catalog/
+    CatalogCacheTests.cs
+  Errors/
+    ErrorScenariosTests.cs
+  Load/
+    LoadAndLatencyTests.cs
+  Purchases/
+    FullPurchaseFlowTests.cs
+  Infrastructure/
+    SmokeApiFixture.cs
+    SmokeTestConfig.cs
 ```
 
 ---

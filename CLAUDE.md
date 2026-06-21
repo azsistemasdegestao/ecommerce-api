@@ -17,8 +17,9 @@ dotnet test Ecommerce.slnx
 # Run a single test project
 dotnet test Ecommerce.UnitTests/Ecommerce.UnitTests.csproj
 dotnet test Ecommerce.IntegrationTests/Ecommerce.IntegrationTests.csproj
+dotnet test Ecommerce.SmokeTests/Ecommerce.SmokeTests.csproj  # requires the live Docker stack
 
-# Run via Docker (full stack: API, PostgreSQL, Redis, Seq, Prometheus, Grafana, Jaeger)
+# Run via Docker (full stack: API, PostgreSQL, Redis, MinIO, Seq, Loki, Prometheus, Grafana, Jaeger)
 docker-compose up
 ```
 
@@ -128,7 +129,7 @@ Private fields: `_camelCase`. Constants: `PascalCase`. Enums: `PascalCase` for t
 
 **Tests:**
 - Naming: `Should_[Result]_When_[Condition]`.
-- Unit tests in `Ecommerce.UnitTests`, integration tests in `Ecommerce.IntegrationTests`.
+- Unit tests in `Ecommerce.UnitTests`, integration tests in `Ecommerce.IntegrationTests`, smoke tests against the live Docker stack in `Ecommerce.SmokeTests` (auth, catalog cache, error scenarios, load/latency, full purchase flow).
 - Use Moq for mocks, FluentAssertions for assertions, TestContainers for real PostgreSQL/Redis in integration tests.
 - Tests must not depend on execution order. Integration tests use `CustomWebApplicationFactory` + `TestContainersFixture`.
 - `Ecommerce.IntegrationTests/xunit.runner.json` sets `parallelizeTestCollections: false` — each test class spins up its own Postgres+Redis Testcontainers, and running them in parallel causes flaky connection-timeout failures under load. If integration tests fail in a full run but pass when filtered to one class, suspect this setting was removed before suspecting a real bug.

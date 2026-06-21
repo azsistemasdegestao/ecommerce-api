@@ -67,6 +67,7 @@ An item available for sale in the catalog.
 - `InStock` → product with `Stock > 0`
 - `OutOfStock` → product with `Stock = 0`
 - `Catalog` → set of all available Products (not deleted)
+- `UploadProductImage` → act of an Admin replacing a Product's `ImageUrl` by uploading a file to object storage (MinIO); accepts JPEG/PNG/WebP up to 5MB, publishes `ProductUpdated` on success
 
 ---
 

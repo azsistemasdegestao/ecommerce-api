@@ -15,6 +15,7 @@ Phase 3   → Cart
 Phase 4   → Orders
 Phase 5   → Payments (Event-Driven)
 Phase 6   → Observability & Hardening
+Phase 7   → Post-Phase-6 Additions (Image Upload, Observability Expansion, Dependency Hygiene)
 ```
 
 ---
@@ -259,6 +260,8 @@ Phase 6   → Observability & Hardening
 
 **Status: ✅ DONE**
 
+> **Post-phase addition:** product image upload (`POST /api/v1/catalog/products/{id}/image`, MinIO-backed via `IImageStorageService`/`S3ImageStorageService`) landed after this phase was closed — see [Phase 7](#phase-7--post-phase-6-additions) and [docs/Tutorial.md](./Tutorial.md), which walks through it end-to-end as the worked example. `SPEC-catalog.md` BR-CAT-012/013 already cover it.
+
 ---
 
 ## Phase 3 — Cart
@@ -431,7 +434,40 @@ Phase 6   → Observability & Hardening
 
 > **Hardening fix found during this phase:** the full integration suite was flaky under default xUnit parallelism (8/96 spurious failures from Docker/Postgres connection contention across ~9 parallel Testcontainers) — added `Ecommerce.IntegrationTests/xunit.runner.json` (`parallelizeTestCollections: false`) to serialize collections. Confirmed 180/180 passing consistently after the fix. This isn't a one-time fluke to ignore — GUARDRAILS §11 forbids order-dependent tests but says nothing about resource contention; serializing was the correct fix since the alternative (reducing Testcontainers per class) would have meant a much larger refactor.
 
-All Phases (0 through 6) are now complete. The project has no further phases planned in `docs/PLAN.md`.
+All Phases (0 through 6) were complete as of the initial release. Since then, the work in [Phase 7](#phase-7--post-phase-6-additions) has shipped on top of that baseline.
+
+---
+
+## Phase 7 — Post-Phase-6 Additions
+
+> Work that landed after Phase 6 was marked done, in three batches: product image upload (MinIO), expanded observability (Loki, Grafana-as-Jaeger-datasource, tracing coverage, smoke tests), and a NuGet dependency-conflict cleanup. None of this was tracked as a numbered phase at the time it shipped — this section closes that gap retroactively.
+
+### 7.1 Product Image Upload (MinIO/S3)
+- [x] Domain: `IImageStorageService` interface
+- [x] Infrastructure: `S3ImageStorageService` (MinIO via `AWSSDK.S3`, `ServiceURL` + `ForcePathStyle`), `BucketInitializer` (ensures bucket exists on startup), `StorageHealthCheck`
+- [x] Application: `UploadProductImageCommand` + Handler + Validator (jpeg/png/webp, max 5MB), reuses `ProductUpdated` event for cache invalidation
+- [x] API: `POST /api/v1/catalog/products/{id}/image` (Admin, JWT), `upload` rate-limit policy (5 req/min)
+- [x] `minio` service added to `docker-compose.yml` (ports 9000 API / 9001 console), `ecommerce-api` depends on its healthcheck
+- [x] Documented end-to-end in `docs/Tutorial.md` as the worked example; `SPEC-catalog.md` BR-CAT-012/013 + ACs added
+- [x] Unit + integration tests (image validation, S3 upload mocked/Testcontainers)
+
+### 7.2 Observability Expansion
+- [x] `loki` service added alongside `seq`; Serilog ships to both (`Serilog.Sinks.Grafana.Loki`)
+- [x] Jaeger connected as a Grafana datasource (trace exploration from the same dashboard as metrics/logs)
+- [x] Tracing extended to Dapper, Redis, MediatR (`TracingBehavior`), `InMemoryEventBus`, and MinIO calls — all via the shared `ApplicationActivitySource` (`Ecommerce.Application.Common.Observability`) plus `AddRedisInstrumentation`/`AddAWSInstrumentation`
+- [x] Removed the raw `AddSource("Npgsql")` registration — it fired for every `NpgsqlCommand` regardless of caller, duplicating EF Core spans and making Dapper/EF Core traces indistinguishable in Jaeger. Dapper queries now get explicit `"Dapper {Class}.{Method}"` spans in each `*QueryService`; EF Core writes are traced solely via `AddEntityFrameworkCoreInstrumentation()`
+- [x] `Ecommerce.SmokeTests` project added — xUnit checks against the live Docker stack (auth flow, catalog cache, error scenarios, load/latency, full purchase flow), distinct from Unit/Integration tests since it has no TestContainers and exercises real running services
+
+### 7.3 Dependency Hygiene
+- [x] Fixed `StackExchange.Redis` pinned at 3.0.0 (incompatible with `OpenTelemetry.Instrumentation.StackExchangeRedis`, which only supports the 2.x line) → downgraded to 2.8.58
+- [x] Fixed `OpenTelemetry.Instrumentation.AWS` pinned at a nonexistent 1.1.0 (floated to 1.11.0, which pulled `AWSSDK.Core` 3.x and conflicted with `AWSSDK.S3` 4.x) → bumped to 1.16.0
+
+### ✅ Phase 7 Completion Criteria
+- [x] `docker-compose up -d --build` starts the full stack (API, Postgres, Redis, MinIO, Seq, Loki, Prometheus, Grafana, Jaeger) without errors
+- [x] `dotnet build Ecommerce.slnx` — zero warnings, zero errors
+- [x] Jaeger shows EF Core write spans and Dapper read spans as visually distinct operations
+
+**Status: ✅ DONE**
 
 ---
 
@@ -467,11 +503,12 @@ Phase 6 (Hardening)   ← depends on everything
 | ORM Commands | EF Core |
 | Queries | Dapper |
 | Cache | Redis (Cache-Aside) |
+| Object Storage | MinIO (S3-compatible, via `AWSSDK.S3`) |
 | Rate Limiting | .NET 10 native |
 | Events | IEventBus (InMemory → RabbitMQ) |
-| Logs | Serilog + Seq |
+| Logs | Serilog + Seq + Loki |
 | Metrics | OpenTelemetry + Prometheus + Grafana |
-| Traces | OpenTelemetry + Jaeger |
+| Traces | OpenTelemetry + Jaeger (also wired as a Grafana datasource) |
 | Database | PostgreSQL |
-| Tests | xUnit + Moq + FluentAssertions + TestContainers |
+| Tests | xUnit + Moq + FluentAssertions + TestContainers (Unit/Integration), live-stack smoke tests (`Ecommerce.SmokeTests`) |
 | Container | Docker + Docker Compose |
