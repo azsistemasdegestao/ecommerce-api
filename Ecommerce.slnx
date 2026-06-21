@@ -66,5 +66,6 @@
   <Project Path="Ecommerce.Domain/Ecommerce.Domain.csproj" Id="273126ba-dffa-4832-8924-2c4b425927ae" />
   <Project Path="Ecommerce.Infrastructure/Ecommerce.Infrastructure.csproj" Id="e7188d9a-9286-4f39-855c-59d2b0ba1201" />
   <Project Path="Ecommerce.IntegrationTests/Ecommerce.IntegrationTests.csproj" Id="d3248238-e4bd-445c-9af6-41c2467d3d67" />
+  <Project Path="Ecommerce.SmokeTests/Ecommerce.SmokeTests.csproj" />
   <Project Path="Ecommerce.UnitTests/Ecommerce.UnitTests.csproj" Id="f98b0858-e2ca-4e77-a2fd-05c76e18f4a6" />
 </Solution>

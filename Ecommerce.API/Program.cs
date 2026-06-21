@@ -11,6 +11,7 @@ using Ecommerce.Infrastructure.Extensions;
 using Ecommerce.Infrastructure.Seeding;
 using Scalar.AspNetCore;
 using Serilog;
+using Serilog.Sinks.Grafana.Loki;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,7 +19,9 @@ builder.Host.UseSerilog((ctx, cfg) =>
     cfg.ReadFrom.Configuration(ctx.Configuration)
        .WriteTo.Console()
        .WriteTo.Seq(ctx.Configuration["SEQ_URL"] ?? "http://localhost:5341")
-       .WriteTo.GrafanaLoki(ctx.Configuration["LOKI_URL"] ?? "http://localhost:3100"));
+       .WriteTo.GrafanaLoki(
+           ctx.Configuration["LOKI_URL"] ?? "http://localhost:3100",
+           labels: [new LokiLabel { Key = "app", Value = "ecommerce-api" }]));
 
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
