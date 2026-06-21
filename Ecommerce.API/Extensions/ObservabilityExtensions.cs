@@ -26,7 +26,6 @@ public static class ObservabilityExtensions
             .WithTracing(tracing => tracing
                 .AddAspNetCoreInstrumentation()
                 .AddEntityFrameworkCoreInstrumentation()
-                .AddSource("Npgsql")
                 .AddSource(ApplicationActivitySource.Name)
                 .AddRedisInstrumentation()
                 .ConfigureRedisInstrumentation((sp, instrumentation) =>

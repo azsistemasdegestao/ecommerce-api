@@ -1,6 +1,7 @@
 using System.Data;
 using Dapper;
 using Ecommerce.Application.Common.DTOs;
+using Ecommerce.Application.Common.Observability;
 using Ecommerce.Application.Orders;
 
 namespace Ecommerce.Infrastructure.Queries;
@@ -19,6 +20,11 @@ public sealed class OrderQueryService : IOrderQueryService
     public async Task<PagedResponse<OrderSummaryDto>> GetOrdersAsync(
         Guid userId, int pageNumber, int pageSize, string? status, CancellationToken ct = default)
     {
+        using var activity = ApplicationActivitySource.Instance.StartActivity(
+            $"Dapper {nameof(OrderQueryService)}.{nameof(GetOrdersAsync)}");
+        activity?.SetTag("db.system", "postgresql");
+        activity?.SetTag("app.query.type", "dapper");
+
         const string sql = """
             SELECT o.id AS "Id", o.status AS "Status", o.total AS "Total", o.created_at AS "CreatedAt",
                    COUNT(oi.id)::int AS "ItemCount", COUNT(*) OVER()::int AS "TotalCount"
@@ -30,6 +36,7 @@ public sealed class OrderQueryService : IOrderQueryService
             ORDER BY o.created_at DESC
             LIMIT @pageSize OFFSET @offset
             """;
+        activity?.SetTag("db.statement", sql);
 
         var command = new CommandDefinition(
             sql,
@@ -51,6 +58,11 @@ public sealed class OrderQueryService : IOrderQueryService
 
     public async Task<OrderDetailDto?> GetByIdAsync(Guid orderId, CancellationToken ct = default)
     {
+        using var activity = ApplicationActivitySource.Instance.StartActivity(
+            $"Dapper {nameof(OrderQueryService)}.{nameof(GetByIdAsync)}");
+        activity?.SetTag("db.system", "postgresql");
+        activity?.SetTag("app.query.type", "dapper");
+
         const string sql = """
             SELECT o.id AS "OrderId", o.user_id AS "UserId", o.status AS "Status", o.total AS "Total",
                    o.shipping_address AS "ShippingAddress", o.created_at AS "CreatedAt", o.updated_at AS "UpdatedAt",
@@ -60,6 +72,7 @@ public sealed class OrderQueryService : IOrderQueryService
             LEFT JOIN order_items oi ON oi.order_id = o.id
             WHERE o.id = @orderId AND o.deleted_at IS NULL
             """;
+        activity?.SetTag("db.statement", sql);
 
         var command = new CommandDefinition(sql, new { orderId }, cancellationToken: ct);
         var rows = (await _connection.QueryAsync<OrderDetailRow>(command)).ToList();

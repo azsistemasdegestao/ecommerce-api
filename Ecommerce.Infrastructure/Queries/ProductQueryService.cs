@@ -2,6 +2,7 @@ using System.Data;
 using Dapper;
 using Ecommerce.Application.Catalog;
 using Ecommerce.Application.Common.DTOs;
+using Ecommerce.Application.Common.Observability;
 
 namespace Ecommerce.Infrastructure.Queries;
 
@@ -22,6 +23,11 @@ public sealed class ProductQueryService : IProductQueryService
         int pageNumber, int pageSize, string? categorySlug, string? search,
         decimal? minPrice, decimal? maxPrice, bool? inStock, CancellationToken ct = default)
     {
+        using var activity = ApplicationActivitySource.Instance.StartActivity(
+            $"Dapper {nameof(ProductQueryService)}.{nameof(GetProductsAsync)}");
+        activity?.SetTag("db.system", "postgresql");
+        activity?.SetTag("app.query.type", "dapper");
+
         const string sql = """
             SELECT p.id AS "Id", p.name AS "Name", p.slug AS "Slug", p.price AS "Price",
                    p.image_url AS "ImageUrl", p.stock > 0 AS "InStock",
@@ -38,6 +44,7 @@ public sealed class ProductQueryService : IProductQueryService
             ORDER BY p.created_at DESC
             LIMIT @pageSize OFFSET @offset
             """;
+        activity?.SetTag("db.statement", sql);
 
         var command = new CommandDefinition(
             sql,
@@ -67,6 +74,11 @@ public sealed class ProductQueryService : IProductQueryService
 
     public async Task<ProductDetailDto?> GetBySlugAsync(string slug, CancellationToken ct = default)
     {
+        using var activity = ApplicationActivitySource.Instance.StartActivity(
+            $"Dapper {nameof(ProductQueryService)}.{nameof(GetBySlugAsync)}");
+        activity?.SetTag("db.system", "postgresql");
+        activity?.SetTag("app.query.type", "dapper");
+
         const string sql = """
             SELECT p.id AS "Id", p.name AS "Name", p.slug AS "Slug", p.description AS "Description",
                    p.price AS "Price", p.stock AS "Stock", p.image_url AS "ImageUrl",
@@ -76,6 +88,7 @@ public sealed class ProductQueryService : IProductQueryService
             JOIN categories c ON c.id = p.category_id
             WHERE p.slug = @slug AND p.deleted_at IS NULL AND c.deleted_at IS NULL
             """;
+        activity?.SetTag("db.statement", sql);
 
         var command = new CommandDefinition(sql, new { slug }, cancellationToken: ct);
 
@@ -91,6 +104,11 @@ public sealed class ProductQueryService : IProductQueryService
 
     public async Task<IReadOnlyList<CategoryDto>> GetCategoriesAsync(CancellationToken ct = default)
     {
+        using var activity = ApplicationActivitySource.Instance.StartActivity(
+            $"Dapper {nameof(ProductQueryService)}.{nameof(GetCategoriesAsync)}");
+        activity?.SetTag("db.system", "postgresql");
+        activity?.SetTag("app.query.type", "dapper");
+
         const string sql = """
             SELECT c.id AS "Id", c.name AS "Name", c.slug AS "Slug", COUNT(p.id)::int AS "ProductCount"
             FROM categories c
@@ -99,6 +117,7 @@ public sealed class ProductQueryService : IProductQueryService
             GROUP BY c.id, c.name, c.slug
             ORDER BY c.name
             """;
+        activity?.SetTag("db.statement", sql);
 
         var command = new CommandDefinition(sql, cancellationToken: ct);
         var result = await _connection.QueryAsync<CategoryDto>(command);

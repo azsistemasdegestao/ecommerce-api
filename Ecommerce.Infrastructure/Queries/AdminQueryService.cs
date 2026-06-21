@@ -2,6 +2,7 @@ using System.Data;
 using Dapper;
 using Ecommerce.Application.Admin;
 using Ecommerce.Application.Common.DTOs;
+using Ecommerce.Application.Common.Observability;
 
 namespace Ecommerce.Infrastructure.Queries;
 
@@ -17,6 +18,11 @@ public sealed class AdminQueryService : IAdminQueryService
     public async Task<PagedResponse<UserSummaryDto>> GetUsersAsync(
         int pageNumber, int pageSize, string? search, CancellationToken ct = default)
     {
+        using var activity = ApplicationActivitySource.Instance.StartActivity(
+            $"Dapper {nameof(AdminQueryService)}.{nameof(GetUsersAsync)}");
+        activity?.SetTag("db.system", "postgresql");
+        activity?.SetTag("app.query.type", "dapper");
+
         // Identity tables keep their PascalCase names (e.g. "AspNetUsers") — EFCore.NamingConventions
         // only rewrites conventionally-derived names, not the ones Identity sets explicitly via Fluent API.
         // Their columns, however, are snake_case since those go through the normal convention pipeline.
@@ -47,6 +53,8 @@ public sealed class AdminQueryService : IAdminQueryService
             ORDER BY u.created_at DESC
             LIMIT @pageSize OFFSET @offset
             """;
+        activity?.SetTag("db.statement", itemsSql);
+        activity?.SetTag("db.statement.count", countSql);
 
         var command = new CommandDefinition(
             countSql,
@@ -67,6 +75,11 @@ public sealed class AdminQueryService : IAdminQueryService
 
     public async Task<UserDetailDto?> GetUserByIdAsync(Guid userId, CancellationToken ct = default)
     {
+        using var activity = ApplicationActivitySource.Instance.StartActivity(
+            $"Dapper {nameof(AdminQueryService)}.{nameof(GetUserByIdAsync)}");
+        activity?.SetTag("db.system", "postgresql");
+        activity?.SetTag("app.query.type", "dapper");
+
         const string sql = """
             SELECT
                 u.id AS "Id",
@@ -85,6 +98,7 @@ public sealed class AdminQueryService : IAdminQueryService
             LEFT JOIN "AspNetRoles" r ON r.id = ur.role_id
             WHERE u.id = @userId
             """;
+        activity?.SetTag("db.statement", sql);
 
         var command = new CommandDefinition(sql, new { userId }, cancellationToken: ct);
         return await _connection.QueryFirstOrDefaultAsync<UserDetailDto>(command);
@@ -96,6 +110,11 @@ public sealed class AdminQueryService : IAdminQueryService
     public async Task<PagedResponse<AdminOrderSummaryDto>> GetOrdersAsync(
         int pageNumber, int pageSize, string? status, Guid? userId, CancellationToken ct = default)
     {
+        using var activity = ApplicationActivitySource.Instance.StartActivity(
+            $"Dapper {nameof(AdminQueryService)}.{nameof(GetOrdersAsync)}");
+        activity?.SetTag("db.system", "postgresql");
+        activity?.SetTag("app.query.type", "dapper");
+
         const string sql = """
             SELECT o.id AS "Id", o.user_id AS "UserId", u.email AS "UserEmail", o.status AS "Status", o.total AS "Total",
                    o.created_at AS "CreatedAt", COUNT(oi.id)::int AS "ItemCount", COUNT(*) OVER()::int AS "TotalCount"
@@ -109,6 +128,7 @@ public sealed class AdminQueryService : IAdminQueryService
             ORDER BY o.created_at DESC
             LIMIT @pageSize OFFSET @offset
             """;
+        activity?.SetTag("db.statement", sql);
 
         var command = new CommandDefinition(
             sql,
@@ -129,6 +149,11 @@ public sealed class AdminQueryService : IAdminQueryService
     public async Task<PagedResponse<AdminPaymentSummaryDto>> GetPaymentsAsync(
         int pageNumber, int pageSize, CancellationToken ct = default)
     {
+        using var activity = ApplicationActivitySource.Instance.StartActivity(
+            $"Dapper {nameof(AdminQueryService)}.{nameof(GetPaymentsAsync)}");
+        activity?.SetTag("db.system", "postgresql");
+        activity?.SetTag("app.query.type", "dapper");
+
         const string sql = """
             SELECT p.id AS "Id", p.order_id AS "OrderId", o.user_id AS "UserId", u.email AS "UserEmail",
                    p.amount AS "Amount", p.status AS "Status", p.created_at AS "CreatedAt",
@@ -139,6 +164,7 @@ public sealed class AdminQueryService : IAdminQueryService
             ORDER BY p.created_at DESC
             LIMIT @pageSize OFFSET @offset
             """;
+        activity?.SetTag("db.statement", sql);
 
         var command = new CommandDefinition(
             sql, new { pageSize, offset = (pageNumber - 1) * pageSize }, cancellationToken: ct);

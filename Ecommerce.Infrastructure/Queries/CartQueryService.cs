@@ -1,6 +1,7 @@
 using System.Data;
 using Dapper;
 using Ecommerce.Application.Cart;
+using Ecommerce.Application.Common.Observability;
 
 namespace Ecommerce.Infrastructure.Queries;
 
@@ -19,6 +20,11 @@ public sealed class CartQueryService : ICartQueryService
 
     public async Task<CartDto?> GetByUserIdAsync(Guid userId, CancellationToken ct = default)
     {
+        using var activity = ApplicationActivitySource.Instance.StartActivity(
+            $"Dapper {nameof(CartQueryService)}.{nameof(GetByUserIdAsync)}");
+        activity?.SetTag("db.system", "postgresql");
+        activity?.SetTag("app.query.type", "dapper");
+
         const string sql = """
             SELECT c.id AS "CartId", c.updated_at AS "UpdatedAt",
                    ci.id AS "ItemId", ci.product_id AS "ProductId", ci.quantity AS "Quantity", ci.unit_price AS "UnitPrice",
@@ -28,6 +34,7 @@ public sealed class CartQueryService : ICartQueryService
             LEFT JOIN products p ON p.id = ci.product_id
             WHERE c.user_id = @userId
             """;
+        activity?.SetTag("db.statement", sql);
 
         var command = new CommandDefinition(sql, new { userId }, cancellationToken: ct);
         var rows = (await _connection.QueryAsync<CartRow>(command)).ToList();
