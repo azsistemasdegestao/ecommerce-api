@@ -143,8 +143,14 @@ GET /scalar      → Interactive UI (dev only)
 | OpenTelemetry.Extensions.Hosting | 1.x | .NET host integration |
 | OpenTelemetry.Instrumentation.AspNetCore | 1.x | Automatic HTTP traces |
 | OpenTelemetry.Instrumentation.EntityFrameworkCore | 1.x | EF Core query traces |
+| OpenTelemetry.Instrumentation.StackExchangeRedis | 1.x | Redis cache call traces |
+| OpenTelemetry.Instrumentation.AWS | 1.x | AWS SDK (S3/MinIO) call traces |
 | OpenTelemetry.Exporter.Prometheus.AspNetCore | 1.x | Exports metrics to Prometheus |
 | OpenTelemetry.Exporter.Jaeger | 1.x | Exports traces to Jaeger |
+
+Custom spans (no extra package, plain `ActivitySource`):
+- `Npgsql` source — captures Dapper queries (Dapper itself has no tracing hooks; the underlying Npgsql driver does).
+- `Ecommerce.Application` source (`ApplicationActivitySource`) — one span per MediatR command/query (`TracingBehavior`) and one span per domain event publish (`InMemoryEventBus`).
 
 ### Observability Endpoints
 ```

@@ -1,8 +1,11 @@
+using Ecommerce.Application.Common.Observability;
 using Ecommerce.Infrastructure.Cache;
+using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using StackExchange.Redis;
 
 namespace Ecommerce.API.Extensions;
 
@@ -23,6 +26,12 @@ public static class ObservabilityExtensions
             .WithTracing(tracing => tracing
                 .AddAspNetCoreInstrumentation()
                 .AddEntityFrameworkCoreInstrumentation()
+                .AddSource("Npgsql")
+                .AddSource(ApplicationActivitySource.Name)
+                .AddRedisInstrumentation()
+                .ConfigureRedisInstrumentation((sp, instrumentation) =>
+                    instrumentation.AddConnection(sp.GetRequiredService<IConnectionMultiplexer>()))
+                .AddAWSInstrumentation()
                 .AddOtlpExporter(o =>
                 {
                     o.Endpoint = new Uri(jaegerEndpoint);

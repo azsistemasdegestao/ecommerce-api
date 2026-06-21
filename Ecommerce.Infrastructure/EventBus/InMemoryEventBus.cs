@@ -1,3 +1,4 @@
+using Ecommerce.Application.Common.Observability;
 using Ecommerce.Domain.Events;
 using Ecommerce.Domain.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,6 +20,8 @@ public sealed class InMemoryEventBus : IEventBus
     public async Task PublishAsync<T>(T domainEvent, CancellationToken ct = default)
         where T : IDomainEvent
     {
+        using var activity = ApplicationActivitySource.Instance.StartActivity($"Publish {typeof(T).Name}");
+
         _logger.LogInformation(
             "Publishing event {EventType} with id {EventId}",
             typeof(T).Name,

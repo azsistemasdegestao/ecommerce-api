@@ -23,6 +23,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
+using StackExchange.Redis;
 
 namespace Ecommerce.Infrastructure.Extensions;
 
@@ -49,8 +50,11 @@ public static class InfrastructureExtensions
             options.UseNpgsql(connectionString)
                    .UseSnakeCaseNamingConvention());
 
+        var redisMultiplexer = ConnectionMultiplexer.Connect(redisConnectionString);
+        services.AddSingleton<IConnectionMultiplexer>(redisMultiplexer);
+
         services.AddStackExchangeRedisCache(options =>
-            options.Configuration = redisConnectionString);
+            options.ConnectionMultiplexerFactory = () => Task.FromResult<IConnectionMultiplexer>(redisMultiplexer));
 
         services.AddSingleton<ICacheService, RedisCacheService>();
         services.AddSingleton<IEventBus, InMemoryEventBus>();
