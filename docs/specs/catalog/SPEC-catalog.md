@@ -173,7 +173,7 @@ Removes a product (soft delete).
 - `BR-CAT-004` Stock cannot be negative.
 - `BR-CAT-005` Deleted product (`DeletedAt != null`) does not appear in the public catalog.
 - `BR-CAT-006` `CategoryId` must reference an existing, non-deleted category.
-- `BR-CAT-007` Event `ProductCreated` published after successful creation.
+- `BR-CAT-007` Event `ProductCreated` published after successful creation — invalidates Redis listing cache.
 - `BR-CAT-008` Event `ProductUpdated` published after update — invalidates Redis cache.
 - `BR-CAT-009` Event `ProductDeleted` published after deletion — invalidates Redis cache.
 - `BR-CAT-010` Listings always paginated (maximum 100 items per page).
@@ -187,7 +187,7 @@ Removes a product (soft delete).
 
 | Event | Published when | Effect |
 |-------|---------------|--------|
-| `ProductCreated` | Product created | — |
+| `ProductCreated` | Product created | Invalidates Redis cache (listing) |
 | `ProductUpdated` | Product updated | Invalidates Redis cache |
 | `ProductDeleted` | Product deleted | Invalidates Redis cache |
 
@@ -210,6 +210,7 @@ Removes a product (soft delete).
 | AC-CAT-U09 | Auto-generated slug when absent | Name without slug | Slug correctly generated |
 | AC-CAT-U10 | Upload image for existing product | Valid file + ProductId | Image uploaded, product updated, `ProductUpdated` published |
 | AC-CAT-U11 | Upload image for non-existing product | Invalid ProductId | `NotFoundException`, upload never attempted |
+| AC-CAT-U12 | Cache invalidated after creation | ProductCreated handler | Redis listing cache key removed |
 
 ### Integration Tests
 

@@ -15,7 +15,8 @@ public static class SecurityExtensions
             options.AddPolicy(CorsPolicyName, policy =>
             {
                 if (allowedOrigins.Length > 0)
-                    policy.WithOrigins(allowedOrigins).AllowAnyMethod().AllowAnyHeader();
+                    policy.WithOrigins(allowedOrigins).AllowAnyMethod().AllowAnyHeader()
+                        .WithExposedHeaders("Retry-After");
             });
         });
 

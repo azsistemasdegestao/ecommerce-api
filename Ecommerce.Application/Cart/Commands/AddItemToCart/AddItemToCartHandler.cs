@@ -24,8 +24,8 @@ public sealed class AddItemToCartHandler : IRequestHandler<AddItemToCartCommand,
         var cart = await _cartRepository.GetByUserIdAsync(request.UserId, cancellationToken);
 
         // BR-CART-004: validate stock against the resulting quantity (existing + requested)
-        var existingQuantity = cart?.Items.FirstOrDefault(i => i.ProductId == product.Id)?.Quantity ?? 0;
-        if (existingQuantity + request.Quantity > product.Stock)
+        var existingItem = cart?.Items.FirstOrDefault(i => i.ProductId == product.Id);
+        if ((existingItem?.Quantity ?? 0) + request.Quantity > product.Stock)
             throw new UnprocessableEntityException("Insufficient stock.");
 
         // BR-CART-001: each Customer has at most one active Cart
@@ -37,8 +37,11 @@ public sealed class AddItemToCartHandler : IRequestHandler<AddItemToCartCommand,
 
         if (isNewCart)
             await _cartRepository.AddAsync(cart, cancellationToken);
-        else
-            _cartRepository.Update(cart);
+        else if (existingItem is null)
+            // The new CartItem was added to an already-tracked Cart.Items collection; explicit
+            // Add is required here because its Id is already set client-side (BaseEntity), which
+            // would otherwise make EF's navigation-fixup heuristic treat it as pre-existing.
+            _cartRepository.AddItem(cart.Items.First(i => i.ProductId == product.Id));
 
         await _cartRepository.SaveChangesAsync(cancellationToken);
 

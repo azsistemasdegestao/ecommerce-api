@@ -22,6 +22,11 @@ public sealed class CartRepository : ICartRepository
     public async Task AddAsync(Cart cart, CancellationToken ct = default) =>
         await _context.Set<Cart>().AddAsync(cart, ct);
 
+    // Explicit Add bypasses EF's navigation-fixup heuristic, which would otherwise treat this
+    // entity as pre-existing (Modified) because its Id is already set client-side via BaseEntity,
+    // even though CartItem.Id is configured with a database-generated default.
+    public void AddItem(CartItem item) => _context.Set<CartItem>().Add(item);
+
     public void Update(Cart cart) => _context.Set<Cart>().Update(cart);
 
     public async Task SaveChangesAsync(CancellationToken ct = default) =>

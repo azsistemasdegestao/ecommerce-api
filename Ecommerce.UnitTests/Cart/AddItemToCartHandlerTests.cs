@@ -62,7 +62,32 @@ public class AddItemToCartHandlerTests
 
         // Assert
         result.Quantity.Should().Be(5);
-        _cartRepositoryMock.Verify(x => x.Update(cart), Times.Once);
+        _cartRepositoryMock.Verify(x => x.Update(It.IsAny<DomainCart>()), Times.Never);
+        _cartRepositoryMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    // AC-CART-U02
+    [Fact]
+    public async Task Should_Explicitly_Add_New_Item_When_Product_Not_Yet_In_Existing_Cart()
+    {
+        // Arrange
+        var existingProduct = MakeProduct(stock: 20);
+        var newProduct = MakeProduct(stock: 5);
+        var userId = Guid.NewGuid();
+        var cart = DomainCart.Create(userId);
+        cart.AddItem(existingProduct.Id, 1, existingProduct.Price);
+        var command = new AddItemToCartCommand(userId, newProduct.Id, 2);
+
+        _productRepositoryMock.Setup(x => x.GetByIdAsync(newProduct.Id, It.IsAny<CancellationToken>())).ReturnsAsync(newProduct);
+        _cartRepositoryMock.Setup(x => x.GetByUserIdAsync(userId, It.IsAny<CancellationToken>())).ReturnsAsync(cart);
+
+        // Act
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.Quantity.Should().Be(2);
+        _cartRepositoryMock.Verify(x => x.AddItem(It.Is<CartItem>(i => i.ProductId == newProduct.Id)), Times.Once);
+        _cartRepositoryMock.Verify(x => x.Update(It.IsAny<DomainCart>()), Times.Never);
     }
 
     // AC-CART-U03

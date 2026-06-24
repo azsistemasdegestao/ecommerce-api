@@ -98,14 +98,14 @@ Ecommerce.Infrastructure/
   Persistence/Repositories/ProductRepository.cs
   Persistence/Configurations/ProductConfiguration.cs / CategoryConfiguration.cs
   Queries/ProductQueryService.cs
-  Cache/Handlers/ProductUpdatedCacheHandler.cs / ProductDeletedCacheHandler.cs
+  Cache/Handlers/ProductCreatedCacheHandler.cs / ProductUpdatedCacheHandler.cs / ProductDeletedCacheHandler.cs
 
 Ecommerce.API/Endpoints/Catalog/CatalogEndpoints.cs
 
 Ecommerce.UnitTests/Catalog/
   CreateProductHandlerTests.cs / UpdateProductHandlerTests.cs
   DeleteProductHandlerTests.cs / GetProductsHandlerTests.cs
-  ProductUpdatedCacheHandlerTests.cs
+  ProductCreatedCacheHandlerTests.cs / ProductUpdatedCacheHandlerTests.cs
 
 Ecommerce.IntegrationTests/Catalog/CatalogEndpointsTests.cs
 ```

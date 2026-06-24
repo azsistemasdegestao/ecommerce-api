@@ -107,6 +107,7 @@ public static class InfrastructureExtensions
         services.AddScoped<IPaymentQueryService, PaymentQueryService>();
         services.AddScoped<IMockGatewayService, MockGatewayService>();
 
+        services.AddScoped<IEventHandler<ProductCreated>, ProductCreatedCacheHandler>();
         services.AddScoped<IEventHandler<ProductUpdated>, ProductUpdatedCacheHandler>();
         services.AddScoped<IEventHandler<ProductDeleted>, ProductDeletedCacheHandler>();
 
