@@ -277,6 +277,7 @@
 - Tests that access a real database (use TestContainers).
 - Creating production code without a corresponding validation criterion in the SPEC.
 - Submitting a PR with failing tests.
+- **Running `Ecommerce.SmokeTests` automatically.** It requires the live Docker stack and must only be run when the user explicitly asks for it.
 
 ---
 

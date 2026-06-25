@@ -17,7 +17,7 @@ dotnet test Ecommerce.slnx
 # Run a single test project
 dotnet test Ecommerce.UnitTests/Ecommerce.UnitTests.csproj
 dotnet test Ecommerce.IntegrationTests/Ecommerce.IntegrationTests.csproj
-dotnet test Ecommerce.SmokeTests/Ecommerce.SmokeTests.csproj  # requires the live Docker stack
+dotnet test Ecommerce.SmokeTests/Ecommerce.SmokeTests.csproj  # requires the live Docker stack — NEVER run automatically, only when the user explicitly asks
 
 # Run via Docker (full stack: API, PostgreSQL, Redis, MinIO, Seq, Loki, Prometheus, Grafana, Jaeger)
 docker-compose up
