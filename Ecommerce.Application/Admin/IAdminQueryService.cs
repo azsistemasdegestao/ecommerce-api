@@ -29,7 +29,7 @@ public sealed record AdminOrderSummaryDto(
     Guid Id, Guid UserId, string UserEmail, string Status, decimal Total, int ItemCount, DateTime CreatedAt);
 
 public sealed record AdminPaymentSummaryDto(
-    Guid Id, Guid OrderId, Guid UserId, string UserEmail, decimal Amount, string Status, DateTime CreatedAt);
+    Guid Id, Guid OrderId, Guid UserId, string UserEmail, decimal Amount, string Status, string PaymentMethod, DateTime CreatedAt);
 
 public interface IAdminQueryService
 {

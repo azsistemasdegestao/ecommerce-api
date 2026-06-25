@@ -4,6 +4,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using Bogus;
 using Ecommerce.Domain.Entities;
+using Ecommerce.Domain.Enums;
 using Ecommerce.Domain.Interfaces;
 using Ecommerce.IntegrationTests.Infrastructure;
 using Ecommerce.Infrastructure.Persistence;
@@ -31,7 +32,7 @@ public class PaymentsEndpointsTests : IClassFixture<TestContainersFixture>
         private readonly bool _success;
         public FakeGatewayService(bool success) => _success = success;
 
-        public Task<GatewayResult> ProcessAsync(Guid paymentId, decimal amount, CancellationToken ct = default) =>
+        public Task<GatewayResult> ProcessAsync(Guid paymentId, decimal amount, PaymentMethod paymentMethod, CancellationToken ct = default) =>
             Task.FromResult(_success ? new GatewayResult(true, null) : new GatewayResult(false, "Insufficient funds"));
     }
 
@@ -102,7 +103,7 @@ public class PaymentsEndpointsTests : IClassFixture<TestContainersFixture>
         Authorize(client, await CreateCustomerAndLoginAsync(client));
         var orderId = await CheckoutAsync(client, factory, "pay-shoes");
 
-        var response = await client.PostAsJsonAsync("/api/v1/payments", new { order_id = orderId });
+        var response = await client.PostAsJsonAsync("/api/v1/payments", new { order_id = orderId, payment_method = "CreditCard" });
         var body = await response.Content.ReadFromJsonAsync<JsonElement>();
 
         response.StatusCode.Should().Be(HttpStatusCode.Accepted);
@@ -116,9 +117,9 @@ public class PaymentsEndpointsTests : IClassFixture<TestContainersFixture>
         var (factory, client) = await CreateClientAsync(gatewaySuccess: true);
         Authorize(client, await CreateCustomerAndLoginAsync(client));
         var orderId = await CheckoutAsync(client, factory, "pay-cap");
-        await client.PostAsJsonAsync("/api/v1/payments", new { order_id = orderId }); // confirms the order via the synchronous event chain
+        await client.PostAsJsonAsync("/api/v1/payments", new { order_id = orderId, payment_method = "CreditCard" }); // confirms the order via the synchronous event chain
 
-        var response = await client.PostAsJsonAsync("/api/v1/payments", new { order_id = orderId });
+        var response = await client.PostAsJsonAsync("/api/v1/payments", new { order_id = orderId, payment_method = "CreditCard" });
 
         response.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
     }
@@ -129,7 +130,7 @@ public class PaymentsEndpointsTests : IClassFixture<TestContainersFixture>
     {
         var (_, client) = await CreateClientAsync();
 
-        var response = await client.PostAsJsonAsync("/api/v1/payments", new { order_id = Guid.NewGuid() });
+        var response = await client.PostAsJsonAsync("/api/v1/payments", new { order_id = Guid.NewGuid(), payment_method = "CreditCard" });
 
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
@@ -141,7 +142,7 @@ public class PaymentsEndpointsTests : IClassFixture<TestContainersFixture>
         var (_, client) = await CreateClientAsync();
         Authorize(client, await CreateCustomerAndLoginAsync(client));
 
-        var response = await client.PostAsJsonAsync("/api/v1/payments", new { order_id = Guid.NewGuid() });
+        var response = await client.PostAsJsonAsync("/api/v1/payments", new { order_id = Guid.NewGuid(), payment_method = "CreditCard" });
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
@@ -155,7 +156,7 @@ public class PaymentsEndpointsTests : IClassFixture<TestContainersFixture>
         var orderId = await CheckoutAsync(client, factory, "pay-belt");
 
         Authorize(client, await CreateCustomerAndLoginAsync(client));
-        var response = await client.PostAsJsonAsync("/api/v1/payments", new { order_id = orderId });
+        var response = await client.PostAsJsonAsync("/api/v1/payments", new { order_id = orderId, payment_method = "CreditCard" });
 
         response.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
     }
@@ -167,13 +168,41 @@ public class PaymentsEndpointsTests : IClassFixture<TestContainersFixture>
         var (factory, client) = await CreateClientAsync(gatewaySuccess: true);
         Authorize(client, await CreateCustomerAndLoginAsync(client));
         var orderId = await CheckoutAsync(client, factory, "pay-watch");
-        await client.PostAsJsonAsync("/api/v1/payments", new { order_id = orderId });
+        await client.PostAsJsonAsync("/api/v1/payments", new { order_id = orderId, payment_method = "CreditCard" });
 
         var response = await client.GetAsync($"/api/v1/payments/{orderId}");
         var body = await response.Content.ReadFromJsonAsync<JsonElement>();
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         body.GetProperty("status").GetString().Should().Be("Processed");
+    }
+
+    // AC-PAY-I14
+    [Fact]
+    public async Task Should_Return_400_When_RequestPayment_With_Invalid_PaymentMethod()
+    {
+        var (factory, client) = await CreateClientAsync(gatewaySuccess: true);
+        Authorize(client, await CreateCustomerAndLoginAsync(client));
+        var orderId = await CheckoutAsync(client, factory, "pay-headband");
+
+        var response = await client.PostAsJsonAsync("/api/v1/payments", new { order_id = orderId, payment_method = "Bitcoin" });
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    // AC-PAY-I15
+    [Fact]
+    public async Task Should_Return_The_Chosen_PaymentMethod_When_Checking_Payment_Status()
+    {
+        var (factory, client) = await CreateClientAsync(gatewaySuccess: true);
+        Authorize(client, await CreateCustomerAndLoginAsync(client));
+        var orderId = await CheckoutAsync(client, factory, "pay-beanie");
+        await client.PostAsJsonAsync("/api/v1/payments", new { order_id = orderId, payment_method = "Pix" });
+
+        var response = await client.GetAsync($"/api/v1/payments/{orderId}");
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+
+        body.GetProperty("payment_method").GetString().Should().Be("Pix");
     }
 
     // AC-PAY-I07
@@ -183,7 +212,7 @@ public class PaymentsEndpointsTests : IClassFixture<TestContainersFixture>
         var (factory, client) = await CreateClientAsync(gatewaySuccess: false);
         Authorize(client, await CreateCustomerAndLoginAsync(client));
         var orderId = await CheckoutAsync(client, factory, "pay-wallet");
-        await client.PostAsJsonAsync("/api/v1/payments", new { order_id = orderId });
+        await client.PostAsJsonAsync("/api/v1/payments", new { order_id = orderId, payment_method = "CreditCard" });
 
         var response = await client.GetAsync($"/api/v1/payments/{orderId}");
         var body = await response.Content.ReadFromJsonAsync<JsonElement>();
@@ -210,7 +239,7 @@ public class PaymentsEndpointsTests : IClassFixture<TestContainersFixture>
         var (factory, client) = await CreateClientAsync(gatewaySuccess: true);
         Authorize(client, await CreateCustomerAndLoginAsync(client));
         var orderId = await CheckoutAsync(client, factory, "pay-gloves");
-        await client.PostAsJsonAsync("/api/v1/payments", new { order_id = orderId });
+        await client.PostAsJsonAsync("/api/v1/payments", new { order_id = orderId, payment_method = "CreditCard" });
 
         Authorize(client, await CreateCustomerAndLoginAsync(client));
         var response = await client.GetAsync($"/api/v1/payments/{orderId}");
@@ -225,7 +254,7 @@ public class PaymentsEndpointsTests : IClassFixture<TestContainersFixture>
         var (factory, client) = await CreateClientAsync(gatewaySuccess: true);
         Authorize(client, await CreateCustomerAndLoginAsync(client));
         var orderId = await CheckoutAsync(client, factory, "pay-scarf");
-        await client.PostAsJsonAsync("/api/v1/payments", new { order_id = orderId });
+        await client.PostAsJsonAsync("/api/v1/payments", new { order_id = orderId, payment_method = "CreditCard" });
 
         var response = await client.GetAsync($"/api/v1/orders/{orderId}");
         var body = await response.Content.ReadFromJsonAsync<JsonElement>();
@@ -240,7 +269,7 @@ public class PaymentsEndpointsTests : IClassFixture<TestContainersFixture>
         var (factory, client) = await CreateClientAsync(gatewaySuccess: false);
         Authorize(client, await CreateCustomerAndLoginAsync(client));
         var orderId = await CheckoutAsync(client, factory, "pay-umbrella");
-        await client.PostAsJsonAsync("/api/v1/payments", new { order_id = orderId });
+        await client.PostAsJsonAsync("/api/v1/payments", new { order_id = orderId, payment_method = "CreditCard" });
 
         var response = await client.GetAsync($"/api/v1/orders/{orderId}");
         var body = await response.Content.ReadFromJsonAsync<JsonElement>();
@@ -258,7 +287,7 @@ public class PaymentsEndpointsTests : IClassFixture<TestContainersFixture>
         HttpResponseMessage response = null!;
         for (var i = 0; i < 11; i++)
         {
-            response = await client.PostAsJsonAsync("/api/v1/payments", new { order_id = Guid.NewGuid() });
+            response = await client.PostAsJsonAsync("/api/v1/payments", new { order_id = Guid.NewGuid(), payment_method = "CreditCard" });
         }
 
         response.StatusCode.Should().Be((HttpStatusCode)429);
@@ -273,8 +302,8 @@ public class PaymentsEndpointsTests : IClassFixture<TestContainersFixture>
         Authorize(client, await CreateCustomerAndLoginAsync(client));
         var orderId = await CheckoutAsync(client, factory, "pay-socks");
 
-        await client.PostAsJsonAsync("/api/v1/payments", new { order_id = orderId });
-        var second = await client.PostAsJsonAsync("/api/v1/payments", new { order_id = orderId });
+        await client.PostAsJsonAsync("/api/v1/payments", new { order_id = orderId, payment_method = "CreditCard" });
+        var second = await client.PostAsJsonAsync("/api/v1/payments", new { order_id = orderId, payment_method = "CreditCard" });
 
         second.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
     }

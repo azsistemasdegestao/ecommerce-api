@@ -144,7 +144,7 @@ public sealed class AdminQueryService : IAdminQueryService
     }
 
     private sealed record AdminPaymentRow(
-        Guid Id, Guid OrderId, Guid UserId, string UserEmail, decimal Amount, string Status, DateTime CreatedAt, int TotalCount);
+        Guid Id, Guid OrderId, Guid UserId, string UserEmail, decimal Amount, string Status, string PaymentMethod, DateTime CreatedAt, int TotalCount);
 
     public async Task<PagedResponse<AdminPaymentSummaryDto>> GetPaymentsAsync(
         int pageNumber, int pageSize, CancellationToken ct = default)
@@ -156,7 +156,7 @@ public sealed class AdminQueryService : IAdminQueryService
 
         const string sql = """
             SELECT p.id AS "Id", p.order_id AS "OrderId", o.user_id AS "UserId", u.email AS "UserEmail",
-                   p.amount AS "Amount", p.status AS "Status", p.created_at AS "CreatedAt",
+                   p.amount AS "Amount", p.status AS "Status", p.payment_method AS "PaymentMethod", p.created_at AS "CreatedAt",
                    COUNT(*) OVER()::int AS "TotalCount"
             FROM payments p
             JOIN orders o ON o.id = p.order_id
@@ -171,7 +171,7 @@ public sealed class AdminQueryService : IAdminQueryService
 
         var rows = (await _connection.QueryAsync<AdminPaymentRow>(command)).ToList();
 
-        var items = rows.Select(r => new AdminPaymentSummaryDto(r.Id, r.OrderId, r.UserId, r.UserEmail, r.Amount, r.Status, r.CreatedAt));
+        var items = rows.Select(r => new AdminPaymentSummaryDto(r.Id, r.OrderId, r.UserId, r.UserEmail, r.Amount, r.Status, r.PaymentMethod, r.CreatedAt));
         var totalCount = rows.Count > 0 ? rows[0].TotalCount : 0;
 
         return new PagedResponse<AdminPaymentSummaryDto>(items, pageNumber, pageSize, totalCount);

@@ -26,7 +26,7 @@ public class RefundPaymentHandlerTests
     public async Task Should_Refund_Processed_Payment_And_Publish_PaymentRefunded()
     {
         // Arrange
-        var payment = Payment.Create(Guid.NewGuid(), 59.80m, "MockGateway");
+        var payment = Payment.Create(Guid.NewGuid(), 59.80m, "MockGateway", PaymentMethod.CreditCard);
         payment.StartProcessing();
         payment.MarkProcessed();
         var command = new RefundPaymentCommand(payment.Id);
@@ -46,7 +46,7 @@ public class RefundPaymentHandlerTests
     public async Task Should_Throw_UnprocessableEntityException_When_Payment_Is_Pending()
     {
         // Arrange
-        var payment = Payment.Create(Guid.NewGuid(), 59.80m, "MockGateway");
+        var payment = Payment.Create(Guid.NewGuid(), 59.80m, "MockGateway", PaymentMethod.CreditCard);
         var command = new RefundPaymentCommand(payment.Id);
 
         _paymentRepositoryMock.Setup(x => x.GetByIdAsync(payment.Id, It.IsAny<CancellationToken>())).ReturnsAsync(payment);

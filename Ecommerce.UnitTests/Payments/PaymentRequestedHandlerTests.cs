@@ -30,11 +30,11 @@ public class PaymentRequestedHandlerTests
     public async Task Should_Publish_PaymentProcessed_When_Gateway_Approves()
     {
         // Arrange
-        var payment = Payment.Create(Guid.NewGuid(), 59.80m, "MockGateway");
+        var payment = Payment.Create(Guid.NewGuid(), 59.80m, "MockGateway", PaymentMethod.CreditCard);
         var domainEvent = MakeEvent(payment);
 
         _paymentRepositoryMock.Setup(x => x.GetByIdAsync(payment.Id, It.IsAny<CancellationToken>())).ReturnsAsync(payment);
-        _gatewayMock.Setup(x => x.ProcessAsync(payment.Id, payment.Amount, It.IsAny<CancellationToken>()))
+        _gatewayMock.Setup(x => x.ProcessAsync(payment.Id, payment.Amount, payment.PaymentMethod, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new GatewayResult(true, null));
 
         // Act
@@ -50,11 +50,11 @@ public class PaymentRequestedHandlerTests
     public async Task Should_Publish_PaymentFailed_When_Gateway_Rejects()
     {
         // Arrange
-        var payment = Payment.Create(Guid.NewGuid(), 59.80m, "MockGateway");
+        var payment = Payment.Create(Guid.NewGuid(), 59.80m, "MockGateway", PaymentMethod.CreditCard);
         var domainEvent = MakeEvent(payment);
 
         _paymentRepositoryMock.Setup(x => x.GetByIdAsync(payment.Id, It.IsAny<CancellationToken>())).ReturnsAsync(payment);
-        _gatewayMock.Setup(x => x.ProcessAsync(payment.Id, payment.Amount, It.IsAny<CancellationToken>()))
+        _gatewayMock.Setup(x => x.ProcessAsync(payment.Id, payment.Amount, payment.PaymentMethod, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new GatewayResult(false, "Insufficient funds"));
 
         // Act
@@ -70,7 +70,7 @@ public class PaymentRequestedHandlerTests
     public async Task Should_Skip_Processing_When_Payment_Is_No_Longer_Pending()
     {
         // Arrange
-        var payment = Payment.Create(Guid.NewGuid(), 59.80m, "MockGateway");
+        var payment = Payment.Create(Guid.NewGuid(), 59.80m, "MockGateway", PaymentMethod.CreditCard);
         payment.StartProcessing();
         payment.MarkProcessed();
         var domainEvent = MakeEvent(payment);
@@ -81,7 +81,7 @@ public class PaymentRequestedHandlerTests
         await _handler.HandleAsync(domainEvent, CancellationToken.None);
 
         // Assert
-        _gatewayMock.Verify(x => x.ProcessAsync(It.IsAny<Guid>(), It.IsAny<decimal>(), It.IsAny<CancellationToken>()), Times.Never);
+        _gatewayMock.Verify(x => x.ProcessAsync(It.IsAny<Guid>(), It.IsAny<decimal>(), It.IsAny<PaymentMethod>(), It.IsAny<CancellationToken>()), Times.Never);
         _eventBusMock.Verify(x => x.PublishAsync(It.IsAny<PaymentProcessed>(), It.IsAny<CancellationToken>()), Times.Never);
         _eventBusMock.Verify(x => x.PublishAsync(It.IsAny<PaymentFailed>(), It.IsAny<CancellationToken>()), Times.Never);
     }

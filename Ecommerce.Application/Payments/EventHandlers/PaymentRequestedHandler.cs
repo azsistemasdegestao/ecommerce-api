@@ -37,7 +37,7 @@ public sealed class PaymentRequestedHandler : IEventHandler<PaymentRequested>
         await _paymentRepository.SaveChangesAsync(ct);
 
         // BR-PAY-004
-        var result = await _gateway.ProcessAsync(payment.Id, payment.Amount, ct);
+        var result = await _gateway.ProcessAsync(payment.Id, payment.Amount, payment.PaymentMethod, ct);
 
         if (result.Success)
         {

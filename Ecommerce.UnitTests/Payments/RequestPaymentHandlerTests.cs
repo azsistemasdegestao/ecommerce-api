@@ -32,7 +32,7 @@ public class RequestPaymentHandlerTests
         // Arrange
         var userId = Guid.NewGuid();
         var order = MakePendingOrder(userId);
-        var command = new RequestPaymentCommand(userId, order.Id);
+        var command = new RequestPaymentCommand(userId, order.Id, "CreditCard");
 
         _orderRepositoryMock.Setup(x => x.GetByIdAsync(order.Id, It.IsAny<CancellationToken>())).ReturnsAsync(order);
         _paymentRepositoryMock.Setup(x => x.GetByOrderIdAsync(order.Id, It.IsAny<CancellationToken>())).ReturnsAsync((Payment?)null);
@@ -43,6 +43,7 @@ public class RequestPaymentHandlerTests
         // Assert
         result.Amount.Should().Be(order.Total);
         result.Status.Should().Be(nameof(PaymentStatus.Pending));
+        result.PaymentMethod.Should().Be(nameof(PaymentMethod.CreditCard));
         _paymentRepositoryMock.Verify(x => x.AddAsync(It.IsAny<Payment>(), It.IsAny<CancellationToken>()), Times.Once);
         _eventBusMock.Verify(x => x.PublishAsync(It.IsAny<PaymentRequested>(), It.IsAny<CancellationToken>()), Times.Once);
     }
@@ -55,7 +56,7 @@ public class RequestPaymentHandlerTests
         var userId = Guid.NewGuid();
         var order = MakePendingOrder(userId);
         order.ChangeStatus(OrderStatus.Confirmed);
-        var command = new RequestPaymentCommand(userId, order.Id);
+        var command = new RequestPaymentCommand(userId, order.Id, "CreditCard");
 
         _orderRepositoryMock.Setup(x => x.GetByIdAsync(order.Id, It.IsAny<CancellationToken>())).ReturnsAsync(order);
 
@@ -73,7 +74,7 @@ public class RequestPaymentHandlerTests
         // Arrange
         var ownerId = Guid.NewGuid();
         var order = MakePendingOrder(ownerId);
-        var command = new RequestPaymentCommand(Guid.NewGuid(), order.Id);
+        var command = new RequestPaymentCommand(Guid.NewGuid(), order.Id, "CreditCard");
 
         _orderRepositoryMock.Setup(x => x.GetByIdAsync(order.Id, It.IsAny<CancellationToken>())).ReturnsAsync(order);
 
@@ -90,8 +91,8 @@ public class RequestPaymentHandlerTests
         // Arrange
         var userId = Guid.NewGuid();
         var order = MakePendingOrder(userId);
-        var existingPayment = Payment.Create(order.Id, order.Total, "MockGateway");
-        var command = new RequestPaymentCommand(userId, order.Id);
+        var existingPayment = Payment.Create(order.Id, order.Total, "MockGateway", PaymentMethod.CreditCard);
+        var command = new RequestPaymentCommand(userId, order.Id, "CreditCard");
 
         _orderRepositoryMock.Setup(x => x.GetByIdAsync(order.Id, It.IsAny<CancellationToken>())).ReturnsAsync(order);
         _paymentRepositoryMock.Setup(x => x.GetByOrderIdAsync(order.Id, It.IsAny<CancellationToken>())).ReturnsAsync(existingPayment);
@@ -101,5 +102,28 @@ public class RequestPaymentHandlerTests
 
         // Assert
         await act.Should().ThrowAsync<UnprocessableEntityException>();
+    }
+
+    [Fact]
+    public async Task Should_Persist_The_Chosen_PaymentMethod_Case_Insensitively()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var order = MakePendingOrder(userId);
+        var command = new RequestPaymentCommand(userId, order.Id, "pix");
+        Payment? createdPayment = null;
+
+        _orderRepositoryMock.Setup(x => x.GetByIdAsync(order.Id, It.IsAny<CancellationToken>())).ReturnsAsync(order);
+        _paymentRepositoryMock.Setup(x => x.GetByOrderIdAsync(order.Id, It.IsAny<CancellationToken>())).ReturnsAsync((Payment?)null);
+        _paymentRepositoryMock
+            .Setup(x => x.AddAsync(It.IsAny<Payment>(), It.IsAny<CancellationToken>()))
+            .Callback<Payment, CancellationToken>((payment, _) => createdPayment = payment);
+
+        // Act
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.PaymentMethod.Should().Be(nameof(PaymentMethod.Pix));
+        createdPayment!.PaymentMethod.Should().Be(PaymentMethod.Pix);
     }
 }

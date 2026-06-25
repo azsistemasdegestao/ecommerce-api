@@ -4,6 +4,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using Bogus;
 using Ecommerce.Domain.Entities;
+using Ecommerce.Domain.Enums;
 using Ecommerce.Domain.Interfaces;
 using Ecommerce.IntegrationTests.Infrastructure;
 using Ecommerce.Infrastructure.Persistence;
@@ -32,7 +33,7 @@ public class AdminPaymentsEndpointsTests : IClassFixture<TestContainersFixture>
         private readonly bool _success;
         public FakeGatewayService(bool success) => _success = success;
 
-        public Task<GatewayResult> ProcessAsync(Guid paymentId, decimal amount, CancellationToken ct = default) =>
+        public Task<GatewayResult> ProcessAsync(Guid paymentId, decimal amount, PaymentMethod paymentMethod, CancellationToken ct = default) =>
             Task.FromResult(_success ? new GatewayResult(true, null) : new GatewayResult(false, "Insufficient funds"));
     }
 
@@ -116,7 +117,7 @@ public class AdminPaymentsEndpointsTests : IClassFixture<TestContainersFixture>
         var orderBody = await orderResponse.Content.ReadFromJsonAsync<JsonElement>();
         var orderId = orderBody.GetProperty("id").GetGuid();
 
-        var paymentResponse = await client.PostAsJsonAsync("/api/v1/payments", new { order_id = orderId });
+        var paymentResponse = await client.PostAsJsonAsync("/api/v1/payments", new { order_id = orderId, payment_method = "CreditCard" });
         var paymentBody = await paymentResponse.Content.ReadFromJsonAsync<JsonElement>();
         return paymentBody.GetProperty("payment_id").GetGuid();
     }
@@ -169,7 +170,7 @@ public class AdminPaymentsEndpointsTests : IClassFixture<TestContainersFixture>
         using (var scope = factory.Services.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            var payment = Payment.Create(orderId, 29.90m, "MockGateway");
+            var payment = Payment.Create(orderId, 29.90m, "MockGateway", PaymentMethod.CreditCard);
             db.Set<Payment>().Add(payment);
             await db.SaveChangesAsync();
             paymentId = payment.Id;

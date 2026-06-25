@@ -28,7 +28,7 @@ public class PaymentProcessedHandlerTests
     {
         // Arrange
         var order = Order.Create(Guid.NewGuid(), "123 Main St", [(Guid.NewGuid(), "Product", 1, 59.80m)]);
-        var payment = Payment.Create(order.Id, order.Total, "MockGateway");
+        var payment = Payment.Create(order.Id, order.Total, "MockGateway", PaymentMethod.CreditCard);
         payment.StartProcessing();
         var domainEvent = new PaymentProcessed(Guid.NewGuid(), DateTime.UtcNow, payment.Id, order.Id);
 
@@ -47,7 +47,7 @@ public class PaymentProcessedHandlerTests
     public async Task Should_Skip_Processing_When_Payment_Is_Not_Processing()
     {
         // Arrange
-        var payment = Payment.Create(Guid.NewGuid(), 59.80m, "MockGateway");
+        var payment = Payment.Create(Guid.NewGuid(), 59.80m, "MockGateway", PaymentMethod.CreditCard);
         var domainEvent = new PaymentProcessed(Guid.NewGuid(), DateTime.UtcNow, payment.Id, payment.OrderId);
 
         _paymentRepositoryMock.Setup(x => x.GetByIdAsync(payment.Id, It.IsAny<CancellationToken>())).ReturnsAsync(payment);

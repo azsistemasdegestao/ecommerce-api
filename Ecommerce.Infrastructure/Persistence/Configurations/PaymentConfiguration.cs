@@ -14,6 +14,7 @@ public sealed class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         builder.Property(x => x.Status).HasConversion<string>().HasMaxLength(20).IsRequired();
         builder.Property(x => x.Amount).HasColumnType("numeric(10,2)");
         builder.Property(x => x.Provider).IsRequired().HasMaxLength(50);
+        builder.Property(x => x.PaymentMethod).HasConversion<string>().HasMaxLength(20).IsRequired();
 
         builder.HasIndex(x => x.OrderId).HasDatabaseName("idx_payments_order_id");
 

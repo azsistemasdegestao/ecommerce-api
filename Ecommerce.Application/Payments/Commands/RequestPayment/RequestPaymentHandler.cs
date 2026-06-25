@@ -37,7 +37,8 @@ public sealed class RequestPaymentHandler : IRequestHandler<RequestPaymentComman
             throw new UnprocessableEntityException("A payment has already been requested for this order.");
 
         // BR-PAY-003
-        var payment = Payment.Create(order.Id, order.Total, "MockGateway");
+        var paymentMethod = Enum.Parse<PaymentMethod>(request.PaymentMethod, ignoreCase: true);
+        var payment = Payment.Create(order.Id, order.Total, "MockGateway", paymentMethod);
         await _paymentRepository.AddAsync(payment, cancellationToken);
         await _paymentRepository.SaveChangesAsync(cancellationToken);
 
@@ -48,6 +49,7 @@ public sealed class RequestPaymentHandler : IRequestHandler<RequestPaymentComman
             OrderId: payment.OrderId,
             Amount: payment.Amount), cancellationToken);
 
-        return new RequestPaymentResponse(payment.Id, payment.OrderId, payment.Amount, payment.Status.ToString(), "Payment is being processed.");
+        return new RequestPaymentResponse(
+            payment.Id, payment.OrderId, payment.Amount, payment.Status.ToString(), payment.PaymentMethod.ToString(), "Payment is being processed.");
     }
 }

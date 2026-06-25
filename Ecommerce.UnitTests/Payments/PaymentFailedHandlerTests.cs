@@ -28,7 +28,7 @@ public class PaymentFailedHandlerTests
     {
         // Arrange
         var order = Order.Create(Guid.NewGuid(), "123 Main St", [(Guid.NewGuid(), "Product", 1, 59.80m)]);
-        var payment = Payment.Create(order.Id, order.Total, "MockGateway");
+        var payment = Payment.Create(order.Id, order.Total, "MockGateway", PaymentMethod.CreditCard);
         payment.StartProcessing();
         var domainEvent = new PaymentFailed(Guid.NewGuid(), DateTime.UtcNow, payment.Id, order.Id, "Insufficient funds");
 

@@ -8,15 +8,17 @@ public sealed class Payment : BaseEntity
     public decimal Amount { get; private set; }
     public PaymentStatus Status { get; private set; }
     public string Provider { get; private set; } = string.Empty;
+    public PaymentMethod PaymentMethod { get; private set; }
 
     private Payment() { }
 
     // BR-PAY-003: created Pending
-    public static Payment Create(Guid orderId, decimal amount, string provider) => new()
+    public static Payment Create(Guid orderId, decimal amount, string provider, PaymentMethod paymentMethod) => new()
     {
         OrderId = orderId,
         Amount = amount,
         Provider = provider,
+        PaymentMethod = paymentMethod,
         Status = PaymentStatus.Pending
     };
 

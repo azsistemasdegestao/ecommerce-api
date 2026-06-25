@@ -21,6 +21,7 @@ public static class PaymentsEndpoints
             .WithSummary("Initiate payment for an Order")
             .WithDescription("Starts asynchronous payment processing for an Order belonging to the authenticated Customer.")
             .Produces<RequestPaymentResponse>(StatusCodes.Status202Accepted)
+            .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces<ProblemDetails>(StatusCodes.Status401Unauthorized)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status422UnprocessableEntity)
@@ -43,7 +44,8 @@ public static class PaymentsEndpoints
     private static async Task<IResult> RequestPayment(
         RequestPaymentRequest request, ClaimsPrincipal principal, ISender sender, CancellationToken ct)
     {
-        var result = await sender.Send(new RequestPaymentCommand(GetUserId(principal), request.OrderId), ct);
+        var result = await sender.Send(
+            new RequestPaymentCommand(GetUserId(principal), request.OrderId, request.PaymentMethod), ct);
         return Results.Accepted($"/api/v1/payments/{result.OrderId}", result);
     }
 
@@ -54,4 +56,4 @@ public static class PaymentsEndpoints
     }
 }
 
-public sealed record RequestPaymentRequest(Guid OrderId);
+public sealed record RequestPaymentRequest(Guid OrderId, string PaymentMethod);

@@ -23,7 +23,8 @@ public sealed class PaymentQueryService : IPaymentQueryService
 
         const string sql = """
             SELECT p.id AS "Id", p.order_id AS "OrderId", o.user_id AS "OrderUserId", p.amount AS "Amount",
-                   p.status AS "Status", p.provider AS "Provider", p.created_at AS "CreatedAt", p.updated_at AS "UpdatedAt"
+                   p.status AS "Status", p.provider AS "Provider", p.payment_method AS "PaymentMethod",
+                   p.created_at AS "CreatedAt", p.updated_at AS "UpdatedAt"
             FROM payments p
             JOIN orders o ON o.id = p.order_id
             WHERE p.order_id = @orderId

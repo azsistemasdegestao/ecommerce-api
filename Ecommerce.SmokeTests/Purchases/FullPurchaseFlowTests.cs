@@ -41,7 +41,8 @@ public sealed class FullPurchaseFlowTests
 
         var paymentResponse = await _fixture.Client.SendJsonAsync(HttpMethod.Post, "/api/v1/payments", new
         {
-            order_id = orderId
+            order_id = orderId,
+            payment_method = "CreditCard"
         }, _fixture.CustomerAccessToken);
         paymentResponse.StatusCode.Should().Be(HttpStatusCode.Accepted);
 

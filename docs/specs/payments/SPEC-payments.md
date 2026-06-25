@@ -28,8 +28,9 @@ Initiates the payment process for an Order.
 
 **Request:**
 ```json
-{ "order_id": "uuid" }
+{ "order_id": "uuid", "payment_method": "CreditCard" }
 ```
+`payment_method` is one of `CreditCard`, `Pix`, `Boleto` (case-insensitive).
 
 **Response 202 Accepted:**
 ```json
@@ -38,6 +39,7 @@ Initiates the payment process for an Order.
   "order_id": "uuid",
   "amount": 59.80,
   "status": "Pending",
+  "payment_method": "CreditCard",
   "message": "Payment is being processed."
 }
 ```
@@ -45,6 +47,7 @@ Initiates the payment process for an Order.
 **Errors:**
 | Status | Reason |
 |--------|--------|
+| 400 | `payment_method` is not one of `CreditCard`, `Pix`, `Boleto` |
 | 404 | Order not found |
 | 422 | Order is not in Pending status |
 | 422 | Order does not belong to Customer |
@@ -64,6 +67,7 @@ Checks the payment status for an Order.
   "amount": 59.80,
   "status": "Processed",
   "provider": "MockGateway",
+  "payment_method": "CreditCard",
   "created_at": "2024-01-01T00:00:00Z",
   "updated_at": "2024-01-01T00:00:00Z"
 }
@@ -82,7 +86,8 @@ Checks the payment status for an Order.
 - `BR-PAY-001` Only Orders with `Pending` status can be paid.
 - `BR-PAY-002` Customer may only pay their own Orders.
 - `BR-PAY-003` Payment created with `Pending` status — return `202 Accepted` immediately.
-- `BR-PAY-004` Processing via `MockGateway`: 80% approval, 20% failure, 100–500ms delay.
+- `BR-PAY-004` Processing via `MockGateway`: approval rate and settlement delay vary by `payment_method` — `CreditCard` 80% approval/100–500ms, `Pix` 95% approval/100–300ms, `Boleto` 70% approval/500–1500ms.
+- `BR-PAY-009` `payment_method` is required and must be one of `CreditCard`, `Pix`, `Boleto` — otherwise `400 Bad Request`.
 - `BR-PAY-005` Event handlers must be **idempotent**.
 - `BR-PAY-006` `PaymentProcessed` → Order status `Confirmed`.
 - `BR-PAY-007` `PaymentFailed` → Order status `Cancelled`.
