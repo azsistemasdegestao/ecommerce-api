@@ -8,3 +8,9 @@ scrape_configs:
       - targets:
           - ecommerce-api:8080
     metrics_path: /metrics
+
+  - job_name: ecommerce-frontend
+    static_configs:
+      - targets:
+          - frontend:4000
+    metrics_path: /metrics
