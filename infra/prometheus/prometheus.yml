@@ -14,3 +14,9 @@ scrape_configs:
       - targets:
           - frontend:4000
     metrics_path: /metrics
+
+  - job_name: alita-agent
+    static_configs:
+      - targets:
+          - alita-agent:8001
+    metrics_path: /metrics
